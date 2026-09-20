@@ -174,7 +174,6 @@ module soc_top
         .addr_map_i(addr_map),
 
         .en_default_mst_port_i('0),
-        
         .default_mst_port_i('0)
     );
 

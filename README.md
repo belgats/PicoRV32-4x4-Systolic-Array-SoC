@@ -303,42 +303,6 @@ CPU firmware
   -> AXI-Lite result readback
 ```
 
-## Publishing this project to GitHub
-
-The root repository is already initialized locally and the nested upstream
-Git metadata has been removed for a self-contained source snapshot. Set the
-GitHub remote and push the current `main` branch:
-
-```bash
-cd /home/gams/project
-
-git remote set-url origin \
-  https://github.com/belgats/PicoRV32-4x4-Systolic-Array-SoC.git
-git add -A
-git commit -m "Remove obsolete project folders"
-git push -u origin main
-```
-
-Check what will be included before pushing:
-
-```bash
-git status
-git diff --cached --stat
-```
-
-Do not commit generated build directories such as `obj_dir/`, dependency
-checkout databases such as `axi/.bender/`, or large generated dependency
-artifacts unless you intentionally want to publish them. If the generated simulator is needed, regenerate it locally rather than
-committing `obj_dir/`.
-
-For an existing GitHub checkout, use:
-
-```bash
-git add README.md
-git commit -m "Add project documentation"
-git push
-```
-
 ## License and upstream components
 
 The project includes upstream PicoRV32, AXI, and systolic-array sources.
