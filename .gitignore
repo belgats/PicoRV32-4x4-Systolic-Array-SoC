@@ -1,0 +1,15 @@
+# Verilator and simulation build products
+obj_dir/
+Systolic-Array-for-Matrix-Multiplication/obj_dir/
+sim
+sim_vpi.vvp
+*.vcd
+*.fst
+
+# AXI dependency checkout and generated build metadata
+axi/.bender/
+axi_sources.f
+axi_sources.json
+
+# Local logs
+wget-log
