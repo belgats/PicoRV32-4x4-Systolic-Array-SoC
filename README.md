@@ -56,8 +56,7 @@ PASS: full 4x4 matrix result verified at cycle 736
 ├── Systolic-Array-for-Matrix-Multiplication/
 │   ├── rtl/                   # Original standalone reference array
 │   └── run.sh                 # Standalone reference simulation
-├── axi_sources.f              # Generated AXI source list
-└── obj_dir/Vtb_soc            # Generated Verilator full-SoC simulator
+└── .gitignore                 # Local build and dependency exclusions
 ```
 
 The `axi` and `picorv32` directories contain upstream components used by the
@@ -164,12 +163,39 @@ Install the following tools locally:
 - Python 3
 - Git
 
-The checked-in generated simulator can be run without rebuilding it. A
-rebuild may also require the AXI dependencies managed by Bender.
+The simulator is a local Verilator build product and is intentionally not
+stored in Git. A rebuild requires Verilator and the AXI dependencies managed
+by Bender.
 
-## Run the existing full SoC test
+## Build and run the full SoC test
 
-From the project root:
+The full simulator is generated locally. From the project root:
+
+```bash
+cd axi
+bender sources -f > ../axi_sources.json
+cd ..
+jq -r '.[].files[]' axi_sources.json \
+  | grep -v '/common_cells/.*/src/deprecated/find_first_one.sv' \
+  > /tmp/axi_sources.filtered.f
+
+verilator \
+  --binary \
+  --timing \
+  --top-module tb_soc \
+  -Iaxi/include \
+  -Iaxi/src \
+  -Isoc/rtl \
+  -f /tmp/axi_sources.filtered.f \
+  picorv32/picorv32.v \
+  soc/rtl/soc_pkg.sv \
+  soc/rtl/accel_regs.sv \
+  soc/rtl/axi_lite_ram.sv \
+  soc/rtl/soc_top.sv \
+  soc/tb/tb_soc.sv
+```
+
+Run the generated test:
 
 ```bash
 ./obj_dir/Vtb_soc
@@ -279,33 +305,21 @@ CPU firmware
 
 ## Publishing this project to GitHub
 
-This checkout currently does not have a root Git repository or remote
-configured. It also contains nested Git metadata in the upstream component
-directories. Decide whether those components should remain separate
-submodules or whether you want to publish a self-contained snapshot.
-
-For a self-contained snapshot, create the root repository from a clean copy
-of the workspace after confirming that you do not need the independent Git
-histories of the component directories. The clean copy must not contain the
-nested `.git` directories:
+The root repository is already initialized locally and the nested upstream
+Git metadata has been removed for a self-contained source snapshot. Set the
+GitHub remote and push the current `main` branch:
 
 ```bash
 cd /home/gams/project
 
-git init
-git add .
-git commit -m "Document PicoRV32 systolic array SoC"
-
-git branch -M main
-git remote add origin https://github.com/<your-user>/<your-repository>.git
+git remote set-url origin \
+  https://github.com/belgats/PicoRV32-4x4-Systolic-Array-SoC.git
+git add -A
+git commit -m "Remove obsolete project folders"
 git push -u origin main
 ```
 
-Do not delete nested Git metadata from the working checkout if those
-directories are intended to remain independent repositories. In that case,
-add them as Git submodules using their upstream URLs instead.
-
-Before pushing a self-contained snapshot, check what will be included:
+Check what will be included before pushing:
 
 ```bash
 git status
@@ -314,10 +328,8 @@ git diff --cached --stat
 
 Do not commit generated build directories such as `obj_dir/`, dependency
 checkout databases such as `axi/.bender/`, or large generated dependency
-artifacts unless you intentionally want to publish them. If the generated
-simulator is needed by users, document the rebuild command and regenerate it
-on their machine instead. Review `git status` and the staged file list before
-the first push.
+artifacts unless you intentionally want to publish them. If the generated simulator is needed, regenerate it locally rather than
+committing `obj_dir/`.
 
 For an existing GitHub checkout, use:
 
